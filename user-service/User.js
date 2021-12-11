@@ -28,8 +28,8 @@ const schema = new Schema(
 //   return user;
 // };
 
-// schema.index({ userId: 1 });
-// schema.plugin(AutoIncrement, { inc_field: "userId" });
+schema.index({ userId: 1 });
+schema.plugin(AutoIncrement, { inc_field: "userId" });
 const model = mongoose.model("User", schema);
 
 export default model;
