@@ -1,21 +1,25 @@
 import amqp from "amqplib";
-
 class Queue {
   static USER_QUEUE = "USER_QUEUE";
   static PRODUCT_QUEUE = "PRODUCT_QUEUE";
   static ORDER_QUEUE = "ORDER_QUEUE";
+  static GATEWAY_QUEUE = "GATEWAY_QUEUE";
 
   constructor({ mainQueue, amqpServer }) {
     this.mainQueue = mainQueue;
     this.amqpServer = amqpServer || process.env.amqpServer;
   }
 
-  async connect() {
+  async connect({ oneByOne = false }) {
     this.connection = await amqp.connect(process.env.amqpServer);
-    this.channel = await connection.createChannel();
-    await this.channel.assertQueue(USER_QUEUE);
-    await this.channel.assertQueue(PRODUCT_QUEUE);
-    await this.channel.assertQueue(ORDER_QUEUE);
+    this.channel = await this.connection.createChannel();
+    if (oneByOne) {
+      this.channel.prefetch(1);
+    }
+    await this.channel.assertQueue(Queue.USER_QUEUE);
+    await this.channel.assertQueue(Queue.PRODUCT_QUEUE);
+    await this.channel.assertQueue(Queue.ORDER_QUEUE);
+    await this.channel.assertQueue(Queue.GATEWAY_QUEUE);
     console.log("queue connected", this.amqpServer);
     return true;
   }
@@ -23,11 +27,12 @@ class Queue {
   async send(data, queue) {
     this.channel.sendToQueue(
       queue || this.mainQueue,
-      Buffer.from(JSON.stringify(data))
+      Buffer.from(JSON.stringify({ ...data, time: new Date(Date.now()) }))
     );
   }
 
   async consume(cb, queue) {
+    const self = this;
     const consumer = await this.channel.consume(
       queue || this.mainQueue,
       async function (msg) {
@@ -35,7 +40,7 @@ class Queue {
           let content = JSON.parse(msg.content);
           // if (content) await cb(content);
           await cb(content);
-          channel.ack(msg);
+          self.channel.ack(msg);
         }
       }
     );
