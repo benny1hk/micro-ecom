@@ -10,7 +10,7 @@ const main = async () => {
   console.log(`There are ${count} of orders in database`);
   if (count) {
     console.log("Removing");
-    await Order.remove({});
+    await Order.deleteMany({});
     count = await Order.countDocuments();
     console.log(`There are ${count} of orders in database`);
   }

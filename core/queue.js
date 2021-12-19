@@ -16,7 +16,9 @@ class Queue {
     this.connection = await amqp.connect(process.env.amqpServer);
     this.channel = await this.connection.createChannel();
     if (oneByOne) {
-      this.channel.prefetch(1);
+      // this.channel.prefetch(50);
+    } else {
+      // this.channel.prefetch(50);
     }
     await this.channel.assertQueue(Queue.ORDER_CREATE);
     await this.channel.assertQueue(Queue.PRODUCT_RESERVE);

@@ -42,6 +42,25 @@ schema.methods.reserveItem = async function (quantity) {
   await this.save();
 };
 
+schema.statics.reserveItem = async function (product_id, quantity) {
+  let update = await this.findOneAndUpdate(
+    {
+      _id: product_id,
+      "stock.quantity": { $gte: quantity },
+    },
+    [
+      {
+        $set: {
+          "stock.quantity": { $subtract: ["$stock.quantity", quantity] },
+          "stock.consumed": { $add: ["$stock.consumed", quantity] },
+        },
+      },
+    ]
+  );
+  if (!update) throw new Error("insuffience quantity");
+  // console.log("new reserveItem", update);
+};
+
 schema.index({ productId: 1 });
 schema.plugin(AutoIncrement, { inc_field: "productId" });
 const model = mongoose.model("Product", schema);

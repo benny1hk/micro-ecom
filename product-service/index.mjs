@@ -28,8 +28,11 @@ const main = async () => {
       await session.withTransaction(async () => {
         try {
           for (const item of items) {
-            let product = await Product.findById(item.product_id);
-            product = await product.reserveItem(item.quantity);
+            // let product = await Product.findById(item.product_id).reserveItem(
+            //   item.quantity
+            // );
+            // product = await product.reserveItem(item.quantity);
+            await Product.reserveItem(item.product_id, item.quantity);
           }
           await queue.send(
             { payload: { order_id } },
