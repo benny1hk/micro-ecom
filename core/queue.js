@@ -1,9 +1,11 @@
 import amqp from "amqplib";
 class Queue {
-  static USER_QUEUE = "USER_QUEUE";
-  static PRODUCT_QUEUE = "PRODUCT_QUEUE";
-  static ORDER_QUEUE = "ORDER_QUEUE";
-  static GATEWAY_QUEUE = "GATEWAY_QUEUE";
+  static ORDER_CREATE = "ORDER_CREATE";
+  static PRODUCT_RESERVE = "PRODUCT_RESERVE";
+  static PRODUCT_RESERVE_SUCCESS = "PRODUCT_RESERVE_SUCCESS";
+  static PRODUCT_RESERVE_FAILED = "PRODUCT_RESERVE_FAILED";
+  static ORDER_COMPLETED = "ORDER_COMPLETED";
+  static ORDER_REJECTED = "ORDER_REJECTED";
 
   constructor({ mainQueue, amqpServer }) {
     this.mainQueue = mainQueue;
@@ -16,10 +18,12 @@ class Queue {
     if (oneByOne) {
       this.channel.prefetch(1);
     }
-    await this.channel.assertQueue(Queue.USER_QUEUE);
-    await this.channel.assertQueue(Queue.PRODUCT_QUEUE);
-    await this.channel.assertQueue(Queue.ORDER_QUEUE);
-    await this.channel.assertQueue(Queue.GATEWAY_QUEUE);
+    await this.channel.assertQueue(Queue.ORDER_CREATE);
+    await this.channel.assertQueue(Queue.PRODUCT_RESERVE);
+    await this.channel.assertQueue(Queue.PRODUCT_RESERVE_SUCCESS);
+    await this.channel.assertQueue(Queue.PRODUCT_RESERVE_FAILED);
+    await this.channel.assertQueue(Queue.ORDER_COMPLETED);
+    await this.channel.assertQueue(Queue.ORDER_REJECTED);
     console.log("queue connected", this.amqpServer);
     return true;
   }
