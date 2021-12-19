@@ -53,6 +53,13 @@ schema.statics.reserveItem = async function (product_id, quantity) {
         $set: {
           "stock.quantity": { $subtract: ["$stock.quantity", quantity] },
           "stock.consumed": { $add: ["$stock.consumed", quantity] },
+          stockStatus: {
+            $cond: {
+              if: { $gt: [{ $subtract: ["$stock.quantity", quantity] }, 0] },
+              then: "In-stock",
+              else: "Out-of-stock",
+            },
+          },
         },
       },
     ]
