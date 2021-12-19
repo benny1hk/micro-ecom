@@ -5,8 +5,8 @@ const data = [
     name: "Apple",
     stockStatus: "In-stock",
     stock: {
-      init: 500,
-      quantity: 500,
+      init: 1000,
+      quantity: 1000,
       consumed: 0,
     },
     priceCent: 120,
@@ -15,8 +15,8 @@ const data = [
     name: "Orange",
     stockStatus: "In-stock",
     stock: {
-      init: 300,
-      quantity: 300,
+      init: 1000,
+      quantity: 1000,
       consumed: 0,
     },
     priceCent: 60,

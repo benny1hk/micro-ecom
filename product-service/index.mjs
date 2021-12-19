@@ -31,7 +31,10 @@ const main = async () => {
             let product = await Product.findById(item.product_id);
             product = await product.reserveItem(item.quantity);
           }
-          await queue.send({ payload: { order_id } }, Queue.PRODUCT_RESERVE);
+          await queue.send(
+            { payload: { order_id } },
+            Queue.PRODUCT_RESERVE_SUCCESS
+          );
           runSuccess = true;
         } catch (error) {
           runSuccess = false;
