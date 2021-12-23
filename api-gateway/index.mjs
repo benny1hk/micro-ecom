@@ -26,8 +26,6 @@ const main = async () => {
     }
   }, Queue.ORDER_REJECTED);
 
-  console.time("1000Call");
-
   Array(i)
     .fill(0)
     .map((v, i) => {
@@ -41,5 +39,6 @@ const main = async () => {
         },
       });
     });
+  console.time("1000Call");
 };
 main();
