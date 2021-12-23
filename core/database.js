@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import AutoIncrementLib from "mongoose-sequence";
 const AutoIncrement = AutoIncrementLib(mongoose);
-
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.on("disconnected", function () {

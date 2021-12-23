@@ -5,6 +5,7 @@
   "main": "index.mjs",
   "type": "module",
   "scripts": {
+    "dev": "NODE_ENV=development mongodb_uri=\"mongodb://127.0.0.1:27016/product-service\" amqpServer=\"amqp://localhost:5672\" nodemon ./index.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -12,7 +13,9 @@
   "dependencies": {
     "amqplib": "^0.8.0",
     "delay": "^5.0.0",
+    "lodash": "^4.17.21",
     "mongoose": "^6.1.1",
-    "mongoose-sequence": "^5.3.1"
+    "mongoose-sequence": "^5.3.1",
+    "redis": "^4.0.1"
   }
 }

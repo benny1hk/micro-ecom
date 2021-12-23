@@ -1,6 +1,10 @@
 // import mongoose from "mongoose";
 import { AutoIncrement, mongoose } from "../core/database.js";
 const { Schema } = mongoose;
+import { MongooseCache } from "./MongooseCache.js";
+import _ from "lodash";
+
+// MongooseCache(mongoose);
 
 const schema = new Schema(
   {
@@ -40,6 +44,7 @@ schema.methods.reserveItem = async function (quantity) {
     throw new Error("insuffience quantity");
   }
   await this.save();
+  console.log("old reserveItem", this._id);
 };
 
 schema.statics.reserveItem = async function (product_id, quantity) {
@@ -64,12 +69,53 @@ schema.statics.reserveItem = async function (product_id, quantity) {
       },
     ]
   );
+  // console.log("Update", update);
   if (!update) throw new Error("insuffience quantity");
-  // console.log("new reserveItem", update);
+  // console.log("new reserveItem", product_id);
+};
+
+schema.statics.preReserve = async function (_items) {
+  let self = this;
+  let queue = _.cloneDeep(_items);
+
+  try {
+    await Promise.all(
+      queue.map(async (item) => {
+        const { product_id, quantity } = item;
+        let product = await self.getCache(product_id);
+        if (!product) {
+          product = await self.findOne({ _id: product_id });
+          if (!product) throw new Error("Product not found");
+          await self.setCache(product_id, product);
+        }
+        console.log("product.stock.quantity ", product.stock.quantity);
+        const reserveable = product?.stock?.quantity >= quantity;
+        if (reserveable === false) throw new Error("insuffience quantity");
+        // setImmediate(async () => {});
+        _.set(product, "stock.quantity", product.stock.quantity - quantity);
+        await self.setCache(product_id, product);
+        item.rollback = async function () {
+          let product = await self.getCache(product_id);
+          _.set(product, "stock.quantity", product.stock.quantity + quantity);
+          await self.setCache(product_id, product);
+        };
+      })
+    );
+  } catch (error) {
+    await Promise.all(
+      queue.map(async (item) => {
+        if (item.rollback) await item.rollback();
+      })
+    );
+
+    throw error;
+  }
 };
 
 schema.index({ productId: 1 });
 schema.plugin(AutoIncrement, { inc_field: "productId" });
+
+schema.plugin(MongooseCache);
 const model = mongoose.model("Product", schema);
 
 export default model;

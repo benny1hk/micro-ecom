@@ -4,6 +4,7 @@ class Queue {
   static PRODUCT_RESERVE = "PRODUCT_RESERVE";
   static PRODUCT_RESERVE_SUCCESS = "PRODUCT_RESERVE_SUCCESS";
   static PRODUCT_RESERVE_FAILED = "PRODUCT_RESERVE_FAILED";
+  static PRODUCT_TRANS = "PRODUCT_TRANS";
   static ORDER_COMPLETED = "ORDER_COMPLETED";
   static ORDER_REJECTED = "ORDER_REJECTED";
 
@@ -16,9 +17,9 @@ class Queue {
     this.connection = await amqp.connect(process.env.amqpServer);
     this.channel = await this.connection.createChannel();
     if (oneByOne) {
-      // this.channel.prefetch(50);
+      this.channel.prefetch(1);
     } else {
-      // this.channel.prefetch(50);
+      this.channel.prefetch(50);
     }
     await this.channel.assertQueue(Queue.ORDER_CREATE);
     await this.channel.assertQueue(Queue.PRODUCT_RESERVE);
