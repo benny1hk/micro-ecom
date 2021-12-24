@@ -16,49 +16,60 @@ const main = async () => {
   }
   await queue.connect({});
 
+  // ORDER_CREATE
   queue.consume(async (data) => {
     const {
       payload: { items, name },
     } = data;
 
     const order = await Order.create({ name: name, items: items });
+
     await queue.send(
       {
-        payload: { items: items, order_id: order._id },
+        payload: { items: items, order_id: order._id, orderNo: order.orderNo },
       },
       Queue.PRODUCT_RESERVE
     );
+    console.log("Order Init", order._id);
   });
 
+  // PRODUCT_RESERVE_SUCCESS
   queue.consume(async (data) => {
     const {
       payload: { order_id },
     } = data;
-    let order = await Order.findById(order_id);
-    order = await order.reserved();
-    console.log("order reserved", order._id, order.status);
-
-    await queue.send(
-      {
-        payload: { name: order.name },
-      },
-      Queue.ORDER_COMPLETED
-    );
+    try {
+      await Order.reserved(order_id);
+      console.log("order reserved", order_id);
+      await queue.send(
+        {
+          payload: { order_id: order_id },
+        },
+        Queue.ORDER_COMPLETED
+      );
+    } catch (error) {
+      console.error(error);
+    }
   }, Queue.PRODUCT_RESERVE_SUCCESS);
 
+  // PRODUCT_RESERVE_FAILED
   queue.consume(async (data) => {
     const {
       payload: { order_id },
     } = data;
-    let order = await Order.findById(order_id);
-    order = await order.failed();
-    console.log("order failed", order._id, order.status);
-    await queue.send(
-      {
-        payload: { name: order.name },
-      },
-      Queue.ORDER_REJECTED
-    );
+
+    try {
+      await Order.failed(order_id);
+      console.log("order failed", order_id);
+      await queue.send(
+        {
+          payload: { order_id: order_id },
+        },
+        Queue.ORDER_REJECTED
+      );
+    } catch (error) {
+      console.error(error);
+    }
   }, Queue.PRODUCT_RESERVE_FAILED);
 };
 main();
